@@ -1,4 +1,4 @@
-#!/usr/bin/python 3
+#!/usr/bin/python3
 
 import argparse
 import sys
@@ -40,12 +40,11 @@ def file_url_report(endpoint, api_key, url=None, hash_type=None, scan_id=None):
         # Get response from server
         response = requests.get(endpoint, params)
         # None if response code <200>, HTTPError if otherwise
-        if response.raise_for_status() is not None:
-            raise HTTPError
+        response.raise_for_status()
         report = response.json()
     # Print the response code and Exception
     except HTTPError as e:
-        print("Status Code: {}, Exception: {}".format(response.status_code, str(e)))
+        print("Exception: {}, {}".format(response.raise_for_status(), str(e)))
     # Check results of scan returned from API
     if not report["response_code"] == 1:
         print(report["verbose_msg"])
@@ -80,7 +79,7 @@ def file_scan(endpoint, api_key, file):
     """
     params = {
         "apikey": api_key,
-        "file": file,
+        "file": (file, open(file, 'rb'))
     }
     scan = ""
     response = ""
@@ -88,12 +87,11 @@ def file_scan(endpoint, api_key, file):
         # Get response from server
         response = requests.post(endpoint, params)
         # None if response code <200>, HTTPError if otherwise
-        if response.raise_for_status() is not None:
-            raise HTTPError
+        response.raise_for_status()
         scan = response.json()
     # Print the response code and Exception
     except HTTPError as e:
-        print("Status Code: {}, Exception: {}".format(response.status_code, str(e)))
+        print("Exception: {}, {}".format(response.raise_for_status(), str(e)))
     # Check results of scan returned from API
     if not scan["response_code"] == 1:
         print(scan["verbose_msg"])
@@ -114,8 +112,42 @@ def file_scan(endpoint, api_key, file):
         return scan
 
 
-def file_upload_url():
-    pass
+def get_file_upload_url(endpoint, api_key, file):
+    """
+    This does not work with the public API.  This API requires additional privileges. Please contact us if you
+    need to upload files bigger than 32MB in size.
+    :param endpoint: url for the /file/scan/upload_url endpoint.
+    :param apikey: API key for Virus Total
+    :param file: File to be scanned
+    :return: Returns the scan response for the server.
+    """
+    params = {
+        "apikey": api_key,
+    }
+    upload_url = ''
+    response = ''
+    try:
+        # Fetches a special url to submit file to server
+        response = requests.post(endpoint, params)
+        # None if response code <200>, HTTPError if otherwise
+        response.raise_for_status()
+        upload_url = response.json()
+        # Print the response code and Exception
+    except HTTPError as e:
+        print("Exception: {}, {}".format(response.raise_for_status(), str(e)))
+
+    files = {
+        "file": (file, open(file, 'rb'))
+    }
+    # Scan using the upload url
+    scan_response = ''
+    try:
+        scan_response = requests.post(upload_url, files)
+        scan_response.raise_for_status()
+    except HTTPError as e:
+        print("Status Code: {}, Exception: {}".format(response.status_code, str(e)))
+
+    return scan_response.text
 
 
 if __name__ == "__main__":
@@ -181,8 +213,23 @@ if __name__ == "__main__":
         help="Set the hash algorithm (md5, sha1, sha256) to submit to /file/report. Used in conjunction"
         "with --file.",
     )
+    parser.add_argument(
+        "-U",
+        "--upload_large_file",
+        metavar="Upload_Large_File",
+        type=str,
+        required=False,
+        help="For files 32MB-200MB in size. Generates a special upload url from /file/scan/upload_url endpoint, and "
+             "submits the file to be scanned. Does not work with the public API. This API requires additional "
+             "privileges. Please contact us if you need to upload files bigger than 32MB in size."
+    )
+    if len(sys.argv) == 1:
+        parser.print_help(sys.stderr)
+        sys.exit(1)
+
     args = parser.parse_args()
     filename = str(datetime.now().strftime("%m%d%Y_%H-%M-%S"))
+
     # Grab the api key from environment variables
     api_key = ""
     try:
@@ -190,7 +237,7 @@ if __name__ == "__main__":
     except KeyError:
         print("Environment variable does not exist, or can not be accessed.")
 
-    if args.file:
+    if args.file and args.hash:
         if not args.hash:
             raise KeyError(
                 "Requires hash algorithm with the -H flag. Check usage with -h."
@@ -208,22 +255,40 @@ if __name__ == "__main__":
         with open(filename + ".json", "w") as outfile:
             json.dump(hash_report, outfile, indent=4, sort_keys=True)
 
-    if args.url:
+    elif args.url:
         url_report = file_url_report(urls["url_report_endpoint"], api_key, url=args.url)
         print("Report returned!\nSaving report to {}.json".format(filename))
         with open(filename + ".json", "w") as outfile:
             json.dump(url_report, outfile, indent=4, sort_keys=True)
 
-    if args.file_scan:
+    elif args.file_scan:
         if os.stat(args.file_scan).st_size > 33554432:
             print(
                 "File size can not be larger than 32 MB. Use /file/scan/upload_url endpoint."
             )
             sys.exit(1)
-        scan_id_report = file_scan(urls["file_scan_endpoint"], api_key, args.file_scan)
+        scan_file_response = file_scan(urls["file_scan_endpoint"], api_key, args.file_scan)
         print("Scan info saved to file_scan_{}.json".format(filename))
         with open("file_scan_" + filename + ".json", "w") as outfile:
-            json.dump(scan_id_report, outfile, indent=4, sort_keys=True)
+            json.dump(scan_file_response, outfile, indent=4, sort_keys=True)
+
+    elif args.upload_large_file:
+        '''
+        Does not work with the public API. This API requires additional privileges. 
+        Please contact us if you need to upload files bigger than 32MB in size.
+        '''
+        if os.stat(args.upload_large_file).st_size > 209715200:
+            print("File is too large. Max file size limit is 200MB.")
+            sys.exit(1)
+        elif os.stat(args.upload_large_file).st_size < 33554432:
+            print("File size is smaller than 32MB.  Submit file to /file/scan endpoint using -S, --file_scan flag.")
+            sys.exit(1)
+        else:
+            upload_url_response = get_file_upload_url(urls["file_scan_upload_url_endpoint"], api_key,
+                                                      args.upload_large_file)
+            print("Scan info saved to large_file_scan_{}.json".format(filename))
+            with open("large_file_scan_" + filename + ".json", "w") as outfile:
+                json.dump(upload_url_response, outfile, indent=4, sort_keys=True)
 
     # TODO: Accept lists in args and automate running through API
     # TODO: Set delay for requests through API, as to not overload the server and timeout
