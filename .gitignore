@@ -1,5 +1,8 @@
-# random.txt
-random.txt
+# reports
+*.json
+
+# test files
+test_files/
 
 # .idea/ xml files
 .idea/

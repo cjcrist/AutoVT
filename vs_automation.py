@@ -1,40 +1,92 @@
 #!/usr/bin/python 3
 
 import argparse
-import hashlib
 import sys
-
+import os
 import requests
+import json
 from requests.exceptions import HTTPError
+from datetime import datetime
 
-import config as cfg
+from config.config import auth, urls
+from utils.utils import hash_file
 
 
-def vt_report(output, endpoint, api_key, url=None, md5=None):
+def file_url_report(endpoint, api_key, url=None, hash_type=None, scan_id=None):
     """
-    Runs a scan and returns data to generate a report.  Can be used to run any type of scan, with the correct
-    parameters set.
-    :param output: output file to be written too.
-    :param endpoint: URL for type of scan being ran
-    :param api_key: API key for virus total
-    :param url: If running url scan, set url = url, else leave None
-    :param md5: If running md5 hash scan, set md5 = hash_file(file) when calling function, else leave None
-    :return: Currently returns some data from scan.  Can be changed to return anything.
+    Retrieves the most recent antivirus report from /file/report or /url/report.
+    :param scan_id: Retrieve report by scan id of file scanned.
+    :param endpoint: URL for type of report to grab.
+    :param api_key: API key for virus total.
+    :param url: If running url report, set url = url, else leave None.
+    :param hash_type: Hash algorithm of file.
+    :return: Returns the report of the scan.
     """
 
     # Check to see if md5 hash or url provided in params
-    if md5:
-        report_type = md5
+    if hash_type:
+        resource_type = hash_type
+    elif url:
+        resource_type = url
     else:
-        report_type = url
+        resource_type = scan_id
     params = {
-        'apikey': api_key,
-        'resource': report_type,
+        "apikey": api_key,
+        "resource": resource_type,
     }
-    # response, scan = ''
+    report = ""
+    response = ""
     try:
         # Get response from server
         response = requests.get(endpoint, params)
+        # None if response code <200>, HTTPError if otherwise
+        if response.raise_for_status() is not None:
+            raise HTTPError
+        report = response.json()
+    # Print the response code and Exception
+    except HTTPError as e:
+        print("Status Code: {}, Exception: {}".format(response.status_code, str(e)))
+    # Check results of scan returned from API
+    if not report["response_code"] == 1:
+        print(report["verbose_msg"])
+        sys.exit(0)
+    else:
+        # Prints some results and returns the dictionary of PSPs.  Can Do whatever here.
+        scans_dict = report["scans"]
+        print(
+            "Scan ID: {}\n"
+            "Resource {}\n"
+            "Scan Date: {}\n"
+            "Link to Scan: {}\n"
+            "Total Scans: {} \n"
+            "Positive Hits: {}".format(
+                report["scan_id"],
+                report["resource"],
+                report["scan_date"],
+                report["permalink"],
+                report["total"],
+                report["positives"],
+            )
+        )
+        return report
+
+
+def file_scan(endpoint, api_key, file):
+    """
+    :param endpoint: URL for Virus Total API Endpoint.
+    :param api_key: API Key for Virus Total.
+    :param file: File to be scanned.
+    :return: Scan results to lookup report.
+    """
+    params = {
+        "apikey": api_key,
+        "file": file,
+    }
+    scan = ""
+    response = ""
+    try:
+        # Get response from server
+        response = requests.post(endpoint, params)
         # None if response code <200>, HTTPError if otherwise
         if response.raise_for_status() is not None:
             raise HTTPError
@@ -43,104 +95,135 @@ def vt_report(output, endpoint, api_key, url=None, md5=None):
     except HTTPError as e:
         print("Status Code: {}, Exception: {}".format(response.status_code, str(e)))
     # Check results of scan returned from API
-    if scan['response_code'] == 0:
-        return [output, ['verbose_msg']]
+    if not scan["response_code"] == 1:
+        print(scan["verbose_msg"])
+        sys.exit(0)
     else:
-        # Prints some results and returns the dictionary of PSPs.  Can Do whatever here.
-        scans_dict = scan['scans']
-        print("Output: {}\n"
-              "URL Scanned: {}\n"
-              "Scan Date: {}\n"
-              "Link to Scan: {}\n"
-              "Total Scans: {} \n"
-              "Positive Hits: {}".format(output, scan['resource'], scan['scan_date'], scan['permalink'],
-                                         scan['total'], scan['positives']))
-        return scans_dict
+        # Print response from the scan
+        print(
+            "Scan ID: {}\n"
+            "Resource {}\n"
+            "Link to Scan: {}\n"
+            "Verbose Message: {}".format(
+                scan["scan_id"],
+                scan["resource"],
+                scan["permalink"],
+                scan["verbose_msg"],
+            )
+        )
+        return scan
 
 
-def chunk_size(size, text):
-    """
-    Generates a block of data, incrementing till the EOF
-    :param size: Size of block in bytes
-    :param text: Text of file being chunked
-    :return: A chunk of data of the size of the block, or smaller if at EOF
-    """
-    start = 0
-    while start < len(text):
-        chunk = text[start:start + size]
-        yield chunk
-        start += size
-    return
-
-
-def hash_file(file):
-    """
-    Generates a MD% Hash for file, once it has been chunked and added to the buffer.
-    :param file: File passed in to be hashed
-    :return: MD5 hash of file
-    """
-    # sets a block size limit for the hasher
-    block_size = 4000
-    # MD5 hash buffer for each block of data held in memory
-    hash_buffer = hashlib.md5()
-
-    try:
-        # Read in file
-        with open(file, 'rb') as binFile:
-            # For each chunk of data returned from chunk_size
-            for chunk in chunk_size(block_size, binFile.read()):
-                # Add it to the buffer
-                hash_buffer.update(chunk)
-            # Run a md5 hash on the entire file in the buffer, and return
-            return hash_buffer.hexdigest().encode('utf-8')
-    except MemoryError as e:
-        # If MemoryError, virtual memory depleted.  May need to add more memory to VM, or choose a smaller file.
-        print("Exception: {}".format(str(e)))
-        sys.exit(1)
+def file_upload_url():
+    pass
 
 
 if __name__ == "__main__":
-    # parser = argparse.ArgumentParser(description="Automate the task of running hashes and urls through Virus Total.")
-    # parser.add_argument('-f', '--file', type=str, required=False, help="File")
-    # parser.add_argument('-H', '--hash', type=str, required=False, help="Hash Value(s)")
-    # parser.add_argument('-o', '--output', required=False, help="Output File Location - Ex: /On/Your/Desktop/output.txt")
-    # parser.add_argument('-uR', '--urlReport', type=str, required=False, help="URL")
-    # args = parser.parse_args()
+    parser = argparse.ArgumentParser(
+        description="This program interacts with the Virus Total public API, and is "
+        "intended to work with Linux. \nTo use, you first need to store your "
+        "API key in your systems environment variables which as so:"
+        "export VT_API_KEY = 'your-api-key'."
+    )
+    parser.add_argument(
+        "--version",
+        action="version",
+        version="%(prog)s 1.0",
+    )
+    parser.add_argument(
+        "-f",
+        "--file",
+        metavar="File",
+        type=str,
+        required=False,
+        help="File to be hashed and submitted to /file/report endpoint.",
+    )
+    parser.add_argument(
+        "-u",
+        "--url",
+        metavar="URL_Report",
+        type=str,
+        required=False,
+        help="Retrieves the most recent antivirus report of the URL from /url/report endpoint.",
+    )
+    # parser.add_argument(
+    # 'F',
+    # '--file_list',
+    # metavar='File_List',
+    # FileType=str,
+    # required=False,
+    # help='Parses a file of hashes to be submitted to /file/report endpoint.'
+    # )
+    parser.add_argument(
+        "-S",
+        "--file_scan",
+        metavar="File_Scan",
+        required=False,
+        help="Submit a file to be scanned to the /file/scan endpoint. Will return a scan id. Max file size is 32MB."
+        "If file is larger than 32MB, use /file/scan/upload.",
+    )
+    parser.add_argument(
+        "-si",
+        "--scan_id",
+        metavar="Scan_ID",
+        type=str,
+        required=False,
+        help="Retrieves the most recent antivirus report from /file/report using the scan_id returned "
+        "from /file/scan endpoint.",
+    )
+    parser.add_argument(
+        "-H",
+        "--hash",
+        metavar="Hash",
+        type=str,
+        required=False,
+        choices=["md5", "sha1", "sha256"],
+        help="Set the hash algorithm (md5, sha1, sha256) to submit to /file/report. Used in conjunction"
+        "with --file.",
+    )
+    args = parser.parse_args()
+    filename = str(datetime.now().strftime("%m%d%Y_%H-%M-%S"))
+    # Grab the api key from environment variables
+    api_key = ""
+    try:
+        api_key = auth["api_key"]
+    except KeyError:
+        print("Environment variable does not exist, or can not be accessed.")
 
-    test_file = "random.txt"
-    url = "http://www.megacorpone.com"
+    if args.file:
+        if not args.hash:
+            raise KeyError(
+                "Requires hash algorithm with the -H flag. Check usage with -h."
+            )
+        hash_of_file = hash_file(args.file, args.hash)
+        hash_report = file_url_report(
+            urls["file_report_endpoint"], api_key, hash_type=hash_of_file
+        )
+        print(
+            "Hash algorithm used: {}\nHash of file: {}\n".format(
+                args.hash, hash_of_file
+            )
+        )
+        print("Report returned!\nSaving report to {}.json".format(filename))
+        with open(filename + ".json", "w") as outfile:
+            json.dump(hash_report, outfile, indent=4, sort_keys=True)
 
-    # if args.hash:
-    #     file = open(args.output, 'a+')
-    #     file.write('Below is the identified hash report.\n\n')
-    #     file.close()
-    #     hash_scan = vt_report("Doing a hash scan", cfg.urls['file_api'], cfg.auth['vt_api_key'],
-    #                           md5=hash_file(test_file))
-    # elif args.urlReport:
-    #     file = open(args.output, 'a+')
-    #     file.write('Below is the identified url report.\n\n')
-    #     file.close()
-    #     url_scan = vt_report("Doing a url scan", cfg.urls['url_api'], cfg.auth['vt_api_key'],
-    #                          url="http://www.need-to-change.com")
-    # elif args.file:
-    #     file = open(args.output, 'a+')
-    #     file.write('Below is the identified file report.\n\n')
-    #     file.close()
-    #     file_scan = vt_report("Doing a hash scan", cfg.urls['file_api'], cfg.auth['vt_api_key'],
-    #                           md5=hash_file(test_file))
+    if args.url:
+        url_report = file_url_report(urls["url_report_endpoint"], api_key, url=args.url)
+        print("Report returned!\nSaving report to {}.json".format(filename))
+        with open(filename + ".json", "w") as outfile:
+            json.dump(url_report, outfile, indent=4, sort_keys=True)
 
-    # Example of a hash scan, without passing url param
-    hash_scan = vt_report("Doing a hash scan", cfg.urls['file_api'], cfg.auth['vt_api_key'], md5=hash_file(test_file))
+    if args.file_scan:
+        if os.stat(args.file_scan).st_size > 33554432:
+            print(
+                "File size can not be larger than 32 MB. Use /file/scan/upload_url endpoint."
+            )
+            sys.exit(1)
+        scan_id_report = file_scan(urls["file_scan_endpoint"], api_key, args.file_scan)
+        print("Scan info saved to file_scan_{}.json".format(filename))
+        with open("file_scan_" + filename + ".json", "w") as outfile:
+            json.dump(scan_id_report, outfile, indent=4, sort_keys=True)
 
-    # Example of a url_scan, without passing md5 param
-    url_scan = vt_report("Doing a url scan", cfg.urls['url_api'], cfg.auth['vt_api_key'],
-                         url=url)
-
-    print(url_scan)
-
-    # TODO: Write a main function to handle logic for parsing argv parameters.
-    # TODO: Figure out needs for returning data from scan, and how to store it.
     # TODO: Accept lists in args and automate running through API
     # TODO: Set delay for requests through API, as to not overload the server and timeout
-    # TODO: Add to config file to run metrics and graphs with API
-    # TODO: Display metrics and graphs as option in args
