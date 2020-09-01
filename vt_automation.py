@@ -9,7 +9,7 @@ from requests.exceptions import HTTPError
 from datetime import datetime
 
 from config.config import auth, urls
-from utils.utils import hash_file
+from utils.utils import hash_file, create_dir
 
 
 def file_url_report(endpoint, api_key, url=None, hash_type=None, scan_id=None):
@@ -482,6 +482,8 @@ if __name__ == "__main__":
                 filename
             )
         )
+        # Create the results directory tree if it doesn't exist
+        create_dir("results/reports/files")
         with open("results/reports/files/" + filename + ".json", "w") as outfile:
             json.dump(hash_report, outfile, indent=4, sort_keys=True)
 
@@ -493,6 +495,8 @@ if __name__ == "__main__":
                 filename
             )
         )
+        # Create the results directory tree if it doesn't exist
+        create_dir("results/reports/urls")
         with open("results/reports/urls/" + filename + ".json", "w") as outfile:
             json.dump(url_report, outfile, indent=4, sort_keys=True)
 
@@ -507,6 +511,8 @@ if __name__ == "__main__":
             urls["file_scan_endpoint"], api_key, args.file_scan
         )
         print("Scan info saved to results/scans/files/{}.json".format(filename))
+        # Create the results directory tree if it doesn't exist
+        create_dir("results/reports/files")
         with open("results/scans/files/" + filename + ".json", "w") as outfile:
             json.dump(scan_file_response, outfile, indent=4, sort_keys=True)
 
@@ -529,6 +535,8 @@ if __name__ == "__main__":
                 urls["file_scan_upload_url_endpoint"], api_key, args.upload_large_file
             )
             print("Scan info saved to results/scans/files/{}.json".format(filename))
+            # Create the results directory tree if it doesn't exist
+            create_dir("results/scans/files")
             with open("results/scans/files/" + filename + ".json", "w") as outfile:
                 json.dump(upload_url_response, outfile, indent=4, sort_keys=True)
 
@@ -536,6 +544,8 @@ if __name__ == "__main__":
     elif args.url_scan:
         url_scan_response = url_scan(urls["url_scan_endpoint"], api_key, args.url_scan)
         print("Scan info saved to results/scans/urls/{}.json".format(filename))
+        # Create the results directory tree if it doesn't exist
+        create_dir("results/reports/urls")
         with open("results/scans/urls/" + filename + ".json", "w") as outfile:
             json.dump(url_scan_response, outfile, indent=4, sort_keys=True)
 
@@ -547,6 +557,8 @@ if __name__ == "__main__":
                 filename
             )
         )
+        # Create the results directory tree if it doesn't exist
+        create_dir("results/reports/files")
         with open("results/reports/files/" + filename + ".json", "w") as outfile:
             json.dump(file_report, outfile, indent=4, sort_keys=True)
 
@@ -558,6 +570,8 @@ if __name__ == "__main__":
                 filename
             )
         )
+        # Create the results directory tree if it doesn't exist
+        create_dir("results/reports/urls")
         with open("results/reports/urls/" + filename + ".json", "w") as outfile:
             json.dump(url_report, outfile, indent=4, sort_keys=True)
 
@@ -569,6 +583,8 @@ if __name__ == "__main__":
                 filename
             )
         )
+        # Create the results directory tree if it doesn't exist
+        create_dir("results/reports/domains-ips")
         with open("results/reports/domains-ips/" + filename + ".json", "w") as outfile:
             json.dump(domain_response, outfile, indent=4, sort_keys=True)
 
@@ -580,6 +596,8 @@ if __name__ == "__main__":
                 filename
             )
         )
+        # Create the results directory tree if it doesn't exist
+        create_dir("results/reports/domains-ips")
         with open("results/reports/domains-ips/" + filename + ".json", "w") as outfile:
             json.dump(ip_report, outfile, indent=4, sort_keys=True)
 
@@ -596,6 +614,8 @@ if __name__ == "__main__":
                 filename
             )
         )
+        # Create the results directory tree if it doesn't exist
+        create_dir("results/comments")
         with open("results/comments/" + filename + ".json", "w") as outfile:
             json.dump(comments_response, outfile, indent=4, sort_keys=True)
 

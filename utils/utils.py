@@ -2,6 +2,7 @@
 
 import hashlib
 import sys
+import os
 
 
 def chunk_size(size, text):
@@ -55,3 +56,11 @@ def hash_file(file, alg):
         sys.exit(1)
     except Exception as e:
         print("Exception: {}".format(str(e)))
+
+
+def create_dir(dir_path):
+    try:
+        if not os.path.exists(dir_path):
+            os.makedirs(dir_path)
+    except OSError as e:
+        print(str(e))
