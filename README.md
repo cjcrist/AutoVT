@@ -1,4 +1,4 @@
-## Virus Total Automation
+<center><h2>AutoVT - A Virus Total Automation Tool</h2></center>
 
 This is a quick and dirty project to automate some tasks with Virus Total's public API, and is being developed on Ubuntu Linux 20.04 using Python 3.8.2.    
 
@@ -27,7 +27,12 @@ utils>utils.py>create_dir()
 	<img src="/images/results.png">
 </p>
 
-This project is still in development, and is currently being worked on.  I'm working on the public API only, with plans to work on the private API in the future.  If you would like to add to this project, feel free to fork the project and submit a merge request with updates and features.
+## Development
+This project is still in development, and is currently being worked on.
+
+I would *love* to hear what you think about **AutoVT** on the [issues page](https://github.com/cjcrist/AutoVT/issues). 
+
+Make pull requests, report bugs, suggest ideas, and discuss **AutoVT**.
 
 #### Usage:
 <p align="center">
