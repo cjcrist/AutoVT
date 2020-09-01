@@ -16,6 +16,17 @@ The API key variable is stored in **config/config.py**. If you are using virtual
 File>Settings>Python Console>Environment Variables. 
 ```
 
+Scan/Report responses from the server are saved in the results directory of the project.  You can edit the save location by changing the **create_dir()** function in utils.py.
+
+```
+utils>utils.py>create_dir()
+```
+
+#### Results:
+<p align="center">
+	<img src="/images/results.png">
+</p>
+
 This project is still in development, and is currently being worked on.  I'm working on the public API only, with plans to work on the private API in the future.  If you would like to add to this project, feel free to fork the project and submit a merge request with updates and features.
 
 #### Usage:
