@@ -216,8 +216,7 @@ def domain_report(endpoint, api_key, domain):
         sys.exit(1)
     else:
         # return report and print
-        print("Verbose Message: {}\n"
-              "Detected URLs: \n".format(report["verbose_msg"]))
+        print("Verbose Message: {}\n" "Detected URLs: \n".format(report["verbose_msg"]))
         for url in report["detected_urls"]:
             print(json.dumps(url, indent=4, sort_keys=True))
 
@@ -327,10 +326,10 @@ def put_comments(endpoint, api_key, resource, comment):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="This program interacts with the Virus Total public API, and is "
-                    "intended to work on Linux. \nBefore using this tool, you first need to obtain an "
-                    "API key, and store in environment variables:\n"
-                    "$export VT_API_KEY = 'your-api-key'.\n"
-                    "For more information: https://developers.virustotal.com/reference#getting-started"
+        "intended to work on Linux. \nBefore using this tool, you first need to obtain an "
+        "API key, and store in environment variables:\n"
+        "$export VT_API_KEY = 'your-api-key'.\n"
+        "For more information: https://developers.virustotal.com/reference#getting-started"
     )
     parser.add_argument(
         "--version",
@@ -364,7 +363,7 @@ if __name__ == "__main__":
         metavar="File Scan",
         required=False,
         help="Submit a file to be scanned to the /file/scan endpoint. Will return a scan id. Max file size is 32MB."
-             "If file is larger than 32MB, use /file/scan/upload.",
+        "If file is larger than 32MB, use /file/scan/upload.",
     )
     parser.add_argument(
         "-fsi",
@@ -373,7 +372,7 @@ if __name__ == "__main__":
         type=str,
         required=False,
         help="Retrieves the most recent antivirus report from /file/report endpoint using the scan_id returned "
-             "from /file/scan endpoint.",
+        "from /file/scan endpoint.",
     )
     parser.add_argument(
         "-usi",
@@ -382,15 +381,15 @@ if __name__ == "__main__":
         type=str,
         required=False,
         help="Retrieves the most recent antivirus report form /url/report endpoint using the scan_id returned "
-             "from /url/scan endpoint.",
+        "from /url/scan endpoint.",
     )
     parser.add_argument(
-        '--csv_file',
-        metavar='CSV File',
-        type=argparse.FileType('r'),
+        "--csv_file",
+        metavar="CSV File",
+        type=argparse.FileType("r"),
         required=False,
         help="Parses a csv file of hash values and submits them to the /file/report endpoint.  This could take some "
-             "time with a public API key since the bandwidth is 4 requests per minute."
+        "time with a public API key since the bandwidth is 4 requests per minute.",
     )
     parser.add_argument(
         "--upload_large_file",
@@ -398,8 +397,8 @@ if __name__ == "__main__":
         type=str,
         required=False,
         help="For files 32MB-200MB in size. Generates a special upload url from /file/scan/upload_url endpoint, and "
-             "submits the file to be scanned. Does not work with the public API. This API requires additional "
-             "privileges. Please contact us if you need to upload files bigger than 32MB in size.",
+        "submits the file to be scanned. Does not work with the public API. This API requires additional "
+        "privileges. Please contact us if you need to upload files bigger than 32MB in size.",
     )
     parser.add_argument(
         "--url_scan",
@@ -428,24 +427,24 @@ if __name__ == "__main__":
         type=str,
         required=False,
         help="Either an md5/sha1/sha256 hash of the file or the URL itself you want to retrieve. Use the optional "
-             "--before flag to retrieve comments using the comment's date token."
+        "--before flag to retrieve comments using the comment's date token.",
     )
     parser.add_argument(
         "--before",
         type=str,
         required=False,
         help="A datetime token that allows you to iterate over all comments on a specific item whenever it has been "
-             "commented on more than 25 times. Must be exactly in the same format that was returned by your previous "
-             "API call (e.g. 20120404132340)."
+        "commented on more than 25 times. Must be exactly in the same format that was returned by your previous "
+        "API call (e.g. 20120404132340).",
     )
     parser.add_argument(
         "--put_comment",
         type=str,
         required=False,
         nargs=2,
-        metavar=('(resource,', 'comment)'),
+        metavar=("(resource,", "comment)"),
         help="Resource: Either an md5/sha1/sha256 hash of the file you want to review or the URL itself that you "
-             "want to comment on.  Comment: Comment to post."
+        "want to comment on.  Comment: Comment to post.",
     )
 
     args = parser.parse_args()
@@ -551,7 +550,9 @@ if __name__ == "__main__":
 
     # Submits a scan id to lookup a report using /file/report endpoint.
     elif args.file_scan_id:
-        file_report = file_url_report(urls["file_report_endpoint"], api_key, args.file_scan_id)
+        file_report = file_url_report(
+            urls["file_report_endpoint"], api_key, args.file_scan_id
+        )
         print(
             "Report returned!\nSaving report to results/reports/files/{}.json".format(
                 filename
@@ -564,7 +565,9 @@ if __name__ == "__main__":
 
     # Submits a scan id to lookup a report using the /url/report endpoint.
     elif args.url_scan_id:
-        url_report = file_url_report(urls["url_report_endpoint"], api_key, args.url_scan_id)
+        url_report = file_url_report(
+            urls["url_report_endpoint"], api_key, args.url_scan_id
+        )
         print(
             "Report returned!\nSaving report to results/reports/urls/{}.json".format(
                 filename
@@ -577,7 +580,9 @@ if __name__ == "__main__":
 
     # Looks up a report for a submitted domain name using the /domain/report endpoint.
     elif args.domain:
-        domain_response = domain_report(urls["domain_report_endpoint"], api_key, args.domain)
+        domain_response = domain_report(
+            urls["domain_report_endpoint"], api_key, args.domain
+        )
         print(
             "Report returned!\nSaving report to results/reports/domains-ips/{}.json".format(
                 filename
@@ -590,7 +595,9 @@ if __name__ == "__main__":
 
     # Looks up a report for a submitted ip address using the /ip-address/endpoint.
     elif args.ip:
-        ip_report = ip_address_report(urls["ip_address_report_endpoint"], api_key, args.ip)
+        ip_report = ip_address_report(
+            urls["ip_address_report_endpoint"], api_key, args.ip
+        )
         print(
             "Report returned!\nSaving report to results/reports/domains-ips/{}.json".format(
                 filename
@@ -606,9 +613,13 @@ if __name__ == "__main__":
     # Date token must be in the format exactly as it was returned from the prior API call. (e.g.20120404132340).
     elif args.get_comment:
         if args.before:
-            comments_response = get_comments(urls["get_comments_endpoint"], api_key, args.get_comment, args.before)
+            comments_response = get_comments(
+                urls["get_comments_endpoint"], api_key, args.get_comment, args.before
+            )
         else:
-            comments_response = get_comments(urls["get_comments_endpoint"], api_key, args.get_comment)
+            comments_response = get_comments(
+                urls["get_comments_endpoint"], api_key, args.get_comment
+            )
         print(
             "Report returned!\nSaving report to results/comments/{}.json".format(
                 filename

@@ -14,7 +14,7 @@ def chunk_size(size, text):
     """
     start = 0
     while start < len(text):
-        chunk = text[start: start + size]
+        chunk = text[start : start + size]
         yield chunk
         start += size
     return
@@ -59,6 +59,11 @@ def hash_file(file, alg):
 
 
 def create_dir(dir_path):
+    """
+    Creates a directory if it does not exist.
+    :param dir_path: Path to directory.
+    :return: None
+    """
     try:
         if not os.path.exists(dir_path):
             os.makedirs(dir_path)
