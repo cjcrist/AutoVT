@@ -1,4 +1,4 @@
-<center><h2>AutoVT - A Virus Total Automation Tool</h2></center>
+## AutoVT - A Virus Total Automation Tool
 
 This is a quick and dirty project to automate some tasks with Virus Total's public API, and is being developed on Ubuntu Linux 20.04 using Python 3.8.2.    
 
@@ -16,15 +16,25 @@ The API key variable is stored in **config/config.py**. If you are using virtual
 File>Settings>Python Console>Environment Variables. 
 ```
 
+### Results
 Scan/Report responses from the server are saved in the results directory of the project.  You can edit the save location by changing the **create_dir()** function in utils.py.
 
 ```
 utils>utils.py>create_dir()
 ```
 
-#### Results:
 <p align="center">
 	<img src="/images/results.png">
+</p>
+
+### Usage
+
+```
+python autovt.py -h
+```
+
+<p align="center">
+	<img src="/images/usage.png">
 </p>
 
 ## Development
@@ -33,8 +43,3 @@ This project is still in development, and is currently being worked on.
 I would *love* to hear what you think about **AutoVT** on the [issues page](https://github.com/cjcrist/AutoVT/issues). 
 
 Make pull requests, report bugs, suggest ideas, and discuss **AutoVT**.
-
-#### Usage:
-<p align="center">
-	<img src="/images/usage.png">
-</p>
