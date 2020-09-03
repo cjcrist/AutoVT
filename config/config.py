@@ -17,5 +17,5 @@ urls = {
     "domain_report_endpoint": "https://www.virustotal.com/vtapi/v2/domain/report",
     "ip_address_report_endpoint": "https://www.virustotal.com/vtapi/v2/ip-address/report",
     "get_comments_endpoint": "https://www.virustotal.com/vtapi/v2/comments/get",
-    "put_comments_endpoint": "https://www.virustotal.com/vtapi/v2/comments/get",
+    "put_comments_endpoint": "https://www.virustotal.com/vtapi/v2/comments/put",
 }

@@ -1,13 +1,14 @@
 #!/usr/bin/python3
 
-import argparse
-import sys
-import os
-import requests
 import json
-from requests.exceptions import HTTPError
+import os
+import sys
 from datetime import datetime
 
+import requests
+from requests.exceptions import HTTPError
+
+import parser
 from config.config import auth, urls
 from utils.utils import hash_file, create_dir
 
@@ -60,7 +61,7 @@ def file_url_report(endpoint, api_key, url=None, hash_type=None, scan_id=None):
             "Scan Date: {}\n"
             "Link to Scan: {}\n"
             "Total Scans: {} \n"
-            "Positive Hits: {}".format(
+            "Positive Hits: {}\n".format(
                 report["scan_id"],
                 report["resource"],
                 report["scan_date"],
@@ -104,7 +105,7 @@ def file_scan(endpoint, api_key, file):
             "Scan ID: {}\n"
             "Resource: {}\n"
             "Link to Scan: {}\n"
-            "Verbose Message: {}".format(
+            "Verbose Message: {}\n".format(
                 scan["scan_id"],
                 scan["resource"],
                 scan["permalink"],
@@ -165,7 +166,7 @@ def url_scan(endpoint, api_key, url):
     response = ""
     try:
         # Post request to server to scan url
-        response = requests.post(endpoint, data=params, headers=headers)
+        response = requests.post(endpoint, params=params, headers=headers)
         # None if response code <200>, HTTPError if otherwise
         response.raise_for_status()
     except HTTPError as e:
@@ -182,7 +183,7 @@ def url_scan(endpoint, api_key, url):
             "Scan Date: {}\n"
             "Url Scanned: {}\n"
             "Link to Scan: {}\n"
-            "Verbose Message: {}".format(
+            "Verbose Message: {}\n".format(
                 scan["scan_id"],
                 scan["scan_date"],
                 scan["url"],
@@ -205,7 +206,7 @@ def domain_report(endpoint, api_key, domain):
     response = ""
     try:
         # Make request to server for domain report
-        response = requests.get(endpoint, data=params)
+        response = requests.get(endpoint, params=params)
         # None if response code <200>, HTTPError if otherwise
         response.raise_for_status()
     except HTTPError as e:
@@ -234,7 +235,7 @@ def ip_address_report(endpoint, api_key, ip):
     response = ""
     try:
         # Make request to server for ip address report
-        response = requests.get(endpoint, data=params)
+        response = requests.get(endpoint, params=params)
         # None if response code <200>, HTTPError if otherwise
         response.raise_for_status()
     except HTTPError as e:
@@ -248,7 +249,7 @@ def ip_address_report(endpoint, api_key, ip):
         print(
             "ASN: {}\n"
             "Country: {}\n"
-            "Verbose Message: {}".format(
+            "Verbose Message: {}\n".format(
                 report["asn"],
                 report["country"],
                 report["verbose_msg"],
@@ -294,6 +295,8 @@ def get_comments(endpoint, api_key, resource, before=None):
         )
     for comment in comments["comments"]:
         print(json.dumps(comment, indent=4, sort_keys=True))
+    # Blank print to make the stdout look a bit cleaner
+    print()
     return comments
 
 
@@ -324,130 +327,7 @@ def put_comments(endpoint, api_key, resource, comment):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description="This program interacts with the Virus Total public API, and is "
-        "intended to work on Linux. \nBefore using this tool, you first need to obtain an "
-        "API key, and store in environment variables:\n"
-        "$export VT_API_KEY = 'your-api-key'.\n"
-        "For more information: https://developers.virustotal.com/reference#getting-started"
-    )
-    parser.add_argument(
-        "--version",
-        action="version",
-        version="%(prog)s 1.0",
-    )
-    parser.add_argument(
-        "--file",
-        metavar="File",
-        type=str,
-        required=False,
-        help="File to be hashed and submitted to /file/report endpoint. Use --hash md5/sha1/sh256.",
-    )
-    parser.add_argument(
-        "--hash",
-        metavar="Set File Hash",
-        type=str,
-        required=False,
-        choices=["md5", "sha1", "sha256"],
-        help="Hashes a file and submits the hash [md5, sha1, sha256] to /file/report. Used in conjunction with --file.",
-    )
-    parser.add_argument(
-        "--url_report",
-        metavar="URL Report",
-        type=str,
-        required=False,
-        help="Retrieves the most recent antivirus report of the URL from /url/report endpoint.",
-    )
-    parser.add_argument(
-        "--file_scan",
-        metavar="File Scan",
-        required=False,
-        help="Submit a file to be scanned to the /file/scan endpoint. Will return a scan id. Max file size is 32MB."
-        "If file is larger than 32MB, use /file/scan/upload.",
-    )
-    parser.add_argument(
-        "-fsi",
-        "--file_scan_id",
-        metavar="File Scan ID",
-        type=str,
-        required=False,
-        help="Retrieves the most recent antivirus report from /file/report endpoint using the scan_id returned "
-        "from /file/scan endpoint.",
-    )
-    parser.add_argument(
-        "-usi",
-        "--url_scan_id",
-        metavar="URL Scan ID",
-        type=str,
-        required=False,
-        help="Retrieves the most recent antivirus report form /url/report endpoint using the scan_id returned "
-        "from /url/scan endpoint.",
-    )
-    parser.add_argument(
-        "--csv_file",
-        metavar="CSV File",
-        type=argparse.FileType("r"),
-        required=False,
-        help="Parses a csv file of hash values and submits them to the /file/report endpoint.  This could take some "
-        "time with a public API key since the bandwidth is 4 requests per minute.",
-    )
-    parser.add_argument(
-        "--upload_large_file",
-        metavar="Upload Large File",
-        type=str,
-        required=False,
-        help="For files 32MB-200MB in size. Generates a special upload url from /file/scan/upload_url endpoint, and "
-        "submits the file to be scanned. Does not work with the public API. This API requires additional "
-        "privileges. Please contact us if you need to upload files bigger than 32MB in size.",
-    )
-    parser.add_argument(
-        "--url_scan",
-        metavar="URL Scan",
-        type=str,
-        required=False,
-        help="Submits a url to be scanned using the /url/scan endpoint.",
-    )
-    parser.add_argument(
-        "--domain",
-        metavar="Domain Report",
-        type=str,
-        required=False,
-        help="Retrieves a domain report using the /domain/report endpoint.",
-    )
-    parser.add_argument(
-        "--ip",
-        metavar="IP Address Report",
-        type=str,
-        required=False,
-        help="Retrieves an IP Address report using the /ip_address/report endpoint.",
-    )
-    parser.add_argument(
-        "--get_comment",
-        metavar="Get Comment",
-        type=str,
-        required=False,
-        help="Either an md5/sha1/sha256 hash of the file or the URL itself you want to retrieve. Use the optional "
-        "--before flag to retrieve comments using the comment's date token.",
-    )
-    parser.add_argument(
-        "--before",
-        type=str,
-        required=False,
-        help="A datetime token that allows you to iterate over all comments on a specific item whenever it has been "
-        "commented on more than 25 times. Must be exactly in the same format that was returned by your previous "
-        "API call (e.g. 20120404132340).",
-    )
-    parser.add_argument(
-        "--put_comment",
-        type=str,
-        required=False,
-        nargs=2,
-        metavar=("(resource,", "comment)"),
-        help="Resource: Either an md5/sha1/sha256 hash of the file you want to review or the URL itself that you "
-        "want to comment on.  Comment: Comment to post.",
-    )
-
-    args = parser.parse_args()
+    args = parser.parser.parse_args()
     filename = str(datetime.now().strftime("%m%d%Y_%H-%M-%S"))
 
     # Grab the api key from environment variables
@@ -458,23 +338,23 @@ if __name__ == "__main__":
         print("Environment variable does not exist, or can not be accessed.")
 
     # File argument supplied with no hash algorithm.  Nothing to do here.
-    if args.file:
+    if args.file and not args.hash:
         print(
             "\n**Need to select a hashing algorithm to submit to /file/report endpoint. Try using --hash.**\n"
         )
-        parser.print_help(sys.stderr)
+        parser.parser.print_help(sys.stderr)
         sys.exit(1)
 
     # Splits the file into chunks and hashes the file to look up using the /file/report endpoint.
     if args.file and args.hash:
         hash_of_file = hash_file(args.file, args.hash)
-        hash_report = file_url_report(
-            urls["file_report_endpoint"], api_key, hash_type=hash_of_file
-        )
         print(
             "Hash algorithm used: {}\nHash of file: {}\n".format(
                 args.hash, hash_of_file
             )
+        )
+        hash_report = file_url_report(
+            urls["file_report_endpoint"], api_key, hash_type=hash_of_file
         )
         print(
             "Report returned!\nSaving report to results/reports/files/{}.json".format(
@@ -488,7 +368,9 @@ if __name__ == "__main__":
 
     # Looks up a report based on the url using the /ur/report endpoint
     elif args.url_report:
-        url_report = file_url_report(urls["url_report_endpoint"], api_key, url=args.url)
+        url_report = file_url_report(
+            urls["url_report_endpoint"], api_key, url=args.url_report
+        )
         print(
             "Report returned!\nSaving report to results/reports/urls/{}.json".format(
                 filename
@@ -589,8 +471,10 @@ if __name__ == "__main__":
             )
         )
         # Create the results directory tree if it doesn't exist
-        create_dir("results/reports/domains-ips")
-        with open("results/reports/domains-ips/" + filename + ".json", "w") as outfile:
+        create_dir("results/reports/domains-ips/domains")
+        with open(
+            "results/reports/domains-ips/domains/" + filename + ".json", "w"
+        ) as outfile:
             json.dump(domain_response, outfile, indent=4, sort_keys=True)
 
     # Looks up a report for a submitted ip address using the /ip-address/endpoint.
@@ -604,8 +488,10 @@ if __name__ == "__main__":
             )
         )
         # Create the results directory tree if it doesn't exist
-        create_dir("results/reports/domains-ips")
-        with open("results/reports/domains-ips/" + filename + ".json", "w") as outfile:
+        create_dir("results/reports/domains-ips/ips")
+        with open(
+            "results/reports/domains-ips/ips/" + filename + ".json", "w"
+        ) as outfile:
             json.dump(ip_report, outfile, indent=4, sort_keys=True)
 
     # Looks up the comments for a file or URL using either an md5/sha1/sha256 hash of the file, or a url.
@@ -642,7 +528,7 @@ if __name__ == "__main__":
 
     else:
         if len(sys.argv) == 1:
-            parser.print_help(sys.stderr)
+            parser.parser.print_help(sys.stderr)
             sys.exit(1)
 
     # TODO: Parse csv files of hash values and submit to /file/report endpoint.

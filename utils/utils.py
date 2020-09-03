@@ -48,8 +48,8 @@ def hash_file(file, alg):
             for chunk in chunk_size(block_size, binFile.read()):
                 # Add it to the buffer
                 hash_buffer.update(chunk)
-            # Run a md5 hash on the entire file in the buffer, and return
-            return hash_buffer.hexdigest().encode("utf-8")
+            # Run a hash on the entire file in the buffer, and return
+            return hash_buffer.hexdigest()
     except MemoryError as e:
         # If MemoryError, virtual memory depleted.  May need to add more memory, or choose a smaller file.
         print("Exception: {}".format(str(e)))
