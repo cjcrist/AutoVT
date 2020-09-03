@@ -1,8 +1,8 @@
-## AutoVT - A Virus Total Automation Tool
+## AutoVT - A VirusTotal Automation Tool
 
-This is a quick and dirty project to automate some tasks with Virus Total's public API, and is being developed on Ubuntu Linux 20.04 using Python 3.8.2.    
+This is a quick and dirty project to automate some tasks with VirusTotal's public API, and is being developed on Ubuntu Linux 20.04 using Python 3.8.2.    
 
-Before using this tool, you first need to sign up and acquire an API key from Virus Total. More information on getting an API key, and documents for the Virus Total API can be found [here](https://developers.virustotal.com/reference#getting-started).
+Before using this tool, you first need to sign up and acquire an API key from VirusTotal. More information on getting an API key, and documents for the VirusTotal API can be found [here](https://developers.virustotal.com/reference#getting-started).
 
 Once you have an API key, you can load it into environment variables like this:
 
@@ -36,20 +36,20 @@ python3 autovt.py -h
 
 #### [/file/report/](https://developers.virustotal.com/reference#file-report)
 * Retrieves a file scan report by a supplied MD5, SHA-1, or SHA-256 hash of a file. You can also look up a report by a scan\_id returned byt the **/file/scan** endpoint.
-* To check if a local file has already been reported on Virus Total, you can use the --file flag to pass a file, and the --hash  flag to choose the hashing algorithm.
+* To check if a local file has already been reported on VirusTotal, you can use the --file flag to pass a file, and the --hash  flag to choose the hashing algorithm. The file is then hashed, and the hash value is passed to /file/report to retrieve the report from VirusTotal.
 
 ```
 python3 autovt.py --file /path/to/file --hash sha256
 ```
 
-* You can also lookup the report of a previously scanned file.
+* You can also lookup the report of a previously scanned file using the scan id returned from the scan.
 
 ```
 python3 autovt.py --file_scan_id 919f7c754991dfd5bd17f195dcda393baa9180309fa7d20b9c3fe0f303a3acfc-1599110772
 ```
 
 #### [/file/scan](https://developers.virustotal.com/reference#file-scan)
-* This endpoint allows you to send a file for scanning with Virus Total, and returns a report with a scan id.
+* This endpoint allows you to send a file for scanning with VirusTotal, and returns a report with a scan id.
 * Max file size is 32MB.
 * Public API limit is 4 requests per minute.
 
@@ -67,7 +67,7 @@ python3 autovt.py --upload_large_file /path/to/file
 ```
 
 #### [/url/report](https://developers.virustotal.com/reference#url-report)
-* Retrieves a URL scan report from Virus Total.
+* Retrieves a URL scan report from VirusTotal.
 
 ```
 python3 autovt.py --url_report url-to-lookup
@@ -80,21 +80,21 @@ python3 autovt.py --url_scan_id 1db0ad7dbcec0676710ea0eaacd35d5e471d3e11944d53bc
 ```
 
 #### [/url/scan](https://developers.virustotal.com/reference#url-scan)
-* Scans a URL with Virus Total.
+* Scans a URL with VirusTotal.
 
 ```
 python3 autovt.py --url_scan url-to-scan
 ```
 
 #### [/domain/report](https://developers.virustotal.com/reference#domain-report)
-* Retrieves a report on a domain name from Virus Total.
+* Retrieves a report on a domain name from VirusTotal.
 
 ```
 python3 autovt.py --domain domain-name
 ```
 
 #### [/ip-address/report](https://developers.virustotal.com/reference#ip-address-report)
-* Retrieves a report for an IP address from Virus Total.
+* Retrieves a report for an IP address from VirusTotal.
 
 ```
 python3 autovt.py --ip ip-address
@@ -141,7 +141,7 @@ Make pull requests, report bugs, suggest ideas or features, and discuss **AutoVT
 ## TODO's
 As this project is still in development, there are a few features and upgrades to be made.
 
-* Add functionality to pass in hash values, scan ids, or urls via a csv file to look up reports in Virus Total.
+* Add functionality to pass in hash values, scan ids, or urls via a csv file to look up reports in VirusTotal.
 * Add functionality to pass multiple arguments via the command line to scan files/urls and retrieve reports.
 * Add option to scan url if no report is found.
 * Load balance requests to API, as public API keys are limited to 4 request per minute.

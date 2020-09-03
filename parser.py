@@ -50,7 +50,6 @@ parser.add_argument(
     help="Submits a url to be scanned using the /url/scan endpoint.",
 )
 parser.add_argument(
-    "-fsi",
     "--file_scan_id",
     metavar="File Scan ID",
     type=str,
@@ -59,7 +58,6 @@ parser.add_argument(
     "from /file/scan endpoint.",
 )
 parser.add_argument(
-    "-usi",
     "--url_scan_id",
     metavar="URL Scan ID",
     type=str,
