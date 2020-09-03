@@ -141,10 +141,10 @@ def get_file_upload_url(endpoint, api_key, file):
     # Scan using the upload url
     scan_response = ""
     try:
-        scan_response = requests.post(upload_url, files)
+        scan_response = requests.post(upload_url, files=files)
         scan_response.raise_for_status()
     except HTTPError as e:
-        print("Status Code: {}, Exception: {}".format(response.status_code, str(e)))
+        print("Exception: {}, {}".format(response.raise_for_status(), str(e)))
 
     return scan_response.text
 

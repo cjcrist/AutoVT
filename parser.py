@@ -43,6 +43,13 @@ parser.add_argument(
     "If file is larger than 32MB, use /file/scan/upload.",
 )
 parser.add_argument(
+    "--url_scan",
+    metavar="URL Scan",
+    type=str,
+    required=False,
+    help="Submits a url to be scanned using the /url/scan endpoint.",
+)
+parser.add_argument(
     "-fsi",
     "--file_scan_id",
     metavar="File Scan ID",
@@ -76,13 +83,6 @@ parser.add_argument(
     help="For files 32MB-200MB in size. Generates a special upload url from /file/scan/upload_url endpoint, and "
     "submits the file to be scanned. Does not work with the public API. This API requires additional "
     "privileges. Please contact us if you need to upload files bigger than 32MB in size.",
-)
-parser.add_argument(
-    "--url_scan",
-    metavar="URL Scan",
-    type=str,
-    required=False,
-    help="Submits a url to be scanned using the /url/scan endpoint.",
 )
 parser.add_argument(
     "--domain",
