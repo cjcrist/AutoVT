@@ -366,6 +366,21 @@ if __name__ == "__main__":
         with open("results/reports/files/" + filename + ".json", "w") as outfile:
             json.dump(hash_report, outfile, indent=4, sort_keys=True)
 
+    # Looks up a report based on the supplied url using /file/report endpoint
+    elif args.file_report:
+        file_report = file_url_report(
+            urls["file_report_endpoint"], api_key, hash_type=args.file_report
+        )
+        print(
+            "Report returned!\nSaving report to results/reports/files/{}.json".format(
+                filename
+            )
+        )
+        # Create the results directory tree if it doesn't exist
+        create_dir("results/reports/files")
+        with open("results/reports/files/" + filename + ".json", "w") as outfile:
+            json.dump(file_report, outfile, indent=4, sort_keys=True)
+
     # Looks up a report based on the url using the /ur/report endpoint
     elif args.url_report:
         url_report = file_url_report(

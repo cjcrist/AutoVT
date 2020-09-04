@@ -29,6 +29,13 @@ parser.add_argument(
     help="Hashes a file and submits the hash [md5, sha1, sha256] to /file/report. Used in conjunction with --file.",
 )
 parser.add_argument(
+    "--file_report",
+    metavar="File Report",
+    type=str,
+    required=False,
+    help="Retrieves the most recent antivirus report from /file/report endpoint. Input is a hash value of a file."
+)
+parser.add_argument(
     "--url_report",
     metavar="URL Report",
     type=str,

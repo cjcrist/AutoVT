@@ -48,6 +48,12 @@ python3 autovt.py --file /path/to/file --hash sha256
 python3 autovt.py --file_scan_id 919f7c754991dfd5bd17f195dcda393baa9180309fa7d20b9c3fe0f303a3acfc-1599110772
 ```
 
+* You can also retrieve a report by passing in the file hash (MD5, SHA-1, or SHA-256) directly.  This can be retrieved from a file scan, or from another report like a domain/ip report.
+
+```
+python3 autovt.py --file_report e15e93db3ce3a8a22adb4b18e0e37b93f39c495e4a97008f9b1a9a42e1fac2b0
+```
+
 #### [/file/scan](https://developers.virustotal.com/reference#file-scan)
 * This endpoint allows you to send a file for scanning with VirusTotal, and returns a report with a scan id.
 * Max file size is 32MB.
